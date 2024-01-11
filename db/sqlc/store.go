@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Store struct {
@@ -38,9 +39,9 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 }
 
 type TransferTxParams struct {
-	FromrAccountID int64 `json:"from_account_id"`
-	FoAccountID    int64 `json:"to_account_id"`
-	Fmount         int64 `json:"amount"`
+	FromAccountID int64 `json:"from_account_id"`
+	ToAccountID   int64 `json:"to_account_id"`
+	Amount        int64 `json:"amount"`
 }
 
 type TransferTxResult struct {
@@ -51,11 +52,41 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-func (store *Store) TransferTx(ctx context.Context, avg TransferTxParams) (TransferTxResult, error) {
+func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
-		return nil
+		// Use a different variable name to avoid shadowing the outer 'err'
+		var innerErr error
+
+		result.Transfer, innerErr = q.CreateTransfer(ctx, CreateTransferParams{
+			FromAccountID: pgtype.Int8{Int64: arg.FromAccountID, Valid: true},
+			ToAccountID:   pgtype.Int8{Int64: arg.ToAccountID, Valid: true},
+			Amount:        arg.Amount,
+		})
+
+		if innerErr != nil {
+			return innerErr
+		}
+
+		result.FromEntry, innerErr = q.CreateEntry(ctx, CreateEntryParams{
+			AccountID: pgtype.Int8{Int64: arg.FromAccountID},
+			Amount:    -arg.Amount,
+		})
+		if innerErr != nil {
+			return innerErr
+		}
+
+		result.ToEntry, innerErr = q.CreateEntry(ctx, CreateEntryParams{
+			AccountID: pgtype.Int8{Int64: arg.ToAccountID},
+			Amount:    arg.Amount,
+		})
+		if innerErr != nil {
+			return innerErr
+		}
+
+		return innerErr
 	})
+
 	return result, err
 }
