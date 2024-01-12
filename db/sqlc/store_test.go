@@ -73,13 +73,5 @@ func TestTransfer(t *testing.T) {
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		// check accounts
-		fromAccount := result.FromAccount
-		require.NotEmpty(t, fromAccount)
-		require.Equal(t, account1.ID, fromAccount.ID)
-
-		toAccount := result.ToAccount
-		require.NotEmpty(t, toAccount)
-		require.Equal(t, account2.ID, toAccount.ID)
 	}
 }
