@@ -7,7 +7,7 @@ import (
 
 	"context"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -15,11 +15,11 @@ const (
 )
 
 var testQueries *Queries
-var testDB *pgx.Conn
+var testDB *pgxpool.Pool
 
 func TestMain(m *testing.M) {
 	var err error
-	testDB, err = pgx.Connect(context.Background(), dbSource)
+	testDB, err = pgxpool.New(context.Background(), dbSource)
 	if err != nil {
 		log.Fatal(err)
 	}

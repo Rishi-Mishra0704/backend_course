@@ -6,14 +6,15 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Store struct {
 	*Queries
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewStore(db *pgx.Conn) *Store {
+func NewStore(db *pgxpool.Pool) *Store {
 	return &Store{
 		db:      db,
 		Queries: New(db),
