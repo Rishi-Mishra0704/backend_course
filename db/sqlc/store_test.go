@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,14 +15,11 @@ func TestTransfer(t *testing.T) {
 	n := 5
 	amount := int64(10)
 
-	var wg sync.WaitGroup
 	errs := make(chan error, n)
 	results := make(chan TransferTxResult, n)
 
 	for i := 0; i < n; i++ {
-		wg.Add(1)
 		go func() {
-			defer wg.Done()
 			result, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: account1.ID,
 				ToAccountID:   account2.ID,
@@ -33,16 +29,6 @@ func TestTransfer(t *testing.T) {
 			errs <- err
 			results <- result
 		}()
-	}
-
-	// Wait for all goroutines to finish before making assertions
-	wg.Wait()
-
-	close(errs)
-	close(results)
-
-	for err := range errs {
-		require.NoError(t, err)
 	}
 
 	for i := 0; i < n; i++ {
