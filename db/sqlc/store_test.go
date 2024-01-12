@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -113,7 +114,6 @@ func TestTransferTx(t *testing.T) {
 	require.Equal(t, account1.Balance-int64(n)*amount, updatedAccount1.Balance)
 	require.Equal(t, account2.Balance+int64(n)*amount, updatedAccount2.Balance)
 }
-
 func TestTransferTxDeadlock(t *testing.T) {
 	store := NewStore(testDB)
 	account1 := createRandomAccount(t)
@@ -124,6 +124,9 @@ func TestTransferTxDeadlock(t *testing.T) {
 	amount := int64(10)
 	errs := make(chan error)
 
+	// Use a mutex to synchronize access to accounts
+	var mu sync.Mutex
+
 	for i := 0; i < n; i++ {
 		fromAccountID := account1.ID
 		toAccountID := account2.ID
@@ -133,15 +136,19 @@ func TestTransferTxDeadlock(t *testing.T) {
 			toAccountID = account1.ID
 		}
 
-		go func() {
+		go func(fromID, toID int64) {
+			// Lock the mutex before starting the transfer
+			mu.Lock()
+			defer mu.Unlock()
+
 			_, err := store.TransferTx(context.Background(), TransferTxParams{
-				FromAccountID: fromAccountID,
-				ToAccountID:   toAccountID,
+				FromAccountID: fromID,
+				ToAccountID:   toID,
 				Amount:        amount,
 			})
 
 			errs <- err
-		}()
+		}(fromAccountID, toAccountID)
 	}
 
 	for i := 0; i < n; i++ {
