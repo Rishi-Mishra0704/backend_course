@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -61,8 +60,8 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		var innerErr error
 
 		result.Transfer, innerErr = q.CreateTransfer(ctx, CreateTransferParams{
-			FromAccountID: pgtype.Int8{Int64: arg.FromAccountID, Valid: true},
-			ToAccountID:   pgtype.Int8{Int64: arg.ToAccountID, Valid: true},
+			FromAccountID: int64(arg.FromAccountID),
+			ToAccountID:   int64(arg.ToAccountID),
 			Amount:        arg.Amount,
 		})
 
@@ -71,7 +70,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		}
 
 		result.FromEntry, innerErr = q.CreateEntry(ctx, CreateEntryParams{
-			AccountID: pgtype.Int8{Int64: arg.FromAccountID},
+			AccountID: arg.FromAccountID,
 			Amount:    -arg.Amount,
 		})
 		if innerErr != nil {
@@ -79,7 +78,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		}
 
 		result.ToEntry, innerErr = q.CreateEntry(ctx, CreateEntryParams{
-			AccountID: pgtype.Int8{Int64: arg.ToAccountID},
+			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount,
 		})
 		if innerErr != nil {
