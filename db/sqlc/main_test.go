@@ -7,11 +7,8 @@ import (
 
 	"context"
 
+	"github.com/Rishi-Mishra0704/backend_course/util"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-const (
-	dbSource = "postgresql://root:1111@localhost:5433/simple_bank?sslmode=disable"
 )
 
 var testQueries *Queries
@@ -19,7 +16,11 @@ var testDB *pgxpool.Pool
 
 func TestMain(m *testing.M) {
 	var err error
-	testDB, err = pgxpool.New(context.Background(), dbSource)
+	config, err := util.LoadConfig("../../")
+	if err != nil {
+		log.Fatal("Cannot load config", err)
+	}
+	testDB, err = pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal(err)
 	}
