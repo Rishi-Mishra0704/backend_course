@@ -14,7 +14,7 @@ type CreateAccountRequest struct {
 }
 
 type GetAccountRequest struct {
-	ID int64 `uri:"id" binding:"required, min=1"`
+	ID int64 `uri:"id" binding:"required"`
 }
 type listAccountRequest struct {
 	PageID   int32 `form:"page_id" binding:"required,min=1"`
