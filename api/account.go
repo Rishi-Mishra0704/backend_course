@@ -45,18 +45,18 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	var request GetAccountRequest
 	if err := ctx.ShouldBindUri(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return // Return early if there's a binding error
 	}
 
 	account, err := server.store.GetAccount(ctx, request.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
-
 	}
 
 	ctx.JSON(http.StatusOK, account)
