@@ -28,6 +28,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 	var request CreateUserRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
 	}
 
 	hashedPassword, err := util.HashPassword(request.Password)
