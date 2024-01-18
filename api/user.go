@@ -6,6 +6,7 @@ import (
 	db "github.com/Rishi-Mishra0704/backend_course/db/sqlc"
 	"github.com/Rishi-Mishra0704/backend_course/util"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type CreateUserRequest struct {
@@ -13,6 +14,14 @@ type CreateUserRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required"`
+}
+
+type CreateUserReponse struct {
+	Username          string           `json:"username"`
+	FullName          string           `json:"full_name"`
+	Email             string           `json:"email"`
+	PasswordChangedAt pgtype.Timestamp `json:"password_changed_at"`
+	CreatedAt         pgtype.Timestamp `json:"created_at"`
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
@@ -44,5 +53,12 @@ func (server *Server) createUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, user)
+	userRsp := CreateUserReponse{
+		Username:          user.Username,
+		FullName:          user.FullName,
+		Email:             user.Email,
+		PasswordChangedAt: user.PasswordChangedAt,
+		CreatedAt:         user.CreatedAt,
+	}
+	ctx.JSON(http.StatusOK, userRsp)
 }
