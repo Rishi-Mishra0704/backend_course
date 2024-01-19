@@ -15,6 +15,7 @@ type Server struct {
 	store      db.Store
 	tokenMaker token.Maker
 	router     *gin.Engine
+	config     util.Config
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
@@ -26,19 +27,23 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 	server := &Server{
 		store:      store,
 		tokenMaker: tokenMaker}
-	router := gin.Default()
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
 	}
+	server.setupRouter()
+	return server, nil
+}
 
+func (server *Server) setupRouter() {
+
+	router := gin.Default()
 	router.POST("/accounts", server.createAccount)
 	router.GET("/accounts/:id", server.getAccount)
 	router.GET("/accounts", server.listAccounts)
 	router.POST("/transfers", server.createTransfer)
 	router.POST("/users", server.createUser)
-
+	router.POST("/users/login", server.loginUser)
 	server.router = router
-	return server, nil
 }
 
 func (server *Server) Start(address string) error {

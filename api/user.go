@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 
 	db "github.com/Rishi-Mishra0704/backend_course/db/sqlc"
@@ -76,4 +77,44 @@ func (server *Server) createUser(ctx *gin.Context) {
 	}
 	userRsp := newUserResponse(user)
 	ctx.JSON(http.StatusOK, userRsp)
+}
+
+func (server *Server) loginUser(ctx *gin.Context) {
+	var request LoginUserRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	user, err := server.store.GetUser(ctx, request.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	err = util.CheckPassword(request.Password, user.HashedPassword)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	accessToken, err := server.tokenMaker.CreateToken(
+		user.Username,
+		server.config.AccessTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	response := LoginUserResponse{
+		AccessToken: accessToken,
+		User:        newUserResponse(user),
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
