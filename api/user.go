@@ -16,12 +16,32 @@ type CreateUserRequest struct {
 	Email    string `json:"email" binding:"required"`
 }
 
-type CreateUserReponse struct {
+type userResponse struct {
 	Username          string           `json:"username"`
 	FullName          string           `json:"full_name"`
 	Email             string           `json:"email"`
 	PasswordChangedAt pgtype.Timestamp `json:"password_changed_at"`
 	CreatedAt         pgtype.Timestamp `json:"created_at"`
+}
+
+type LoginUserRequest struct {
+	Username string `json:"username" binding:"required,alphanum"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type LoginUserResponse struct {
+	AccessToken string `json:"access_token"`
+	User        userResponse
+}
+
+func newUserResponse(user db.User) userResponse {
+	return userResponse{
+		Username:          user.Username,
+		FullName:          user.FullName,
+		Email:             user.Email,
+		PasswordChangedAt: user.PasswordChangedAt,
+		CreatedAt:         user.CreatedAt,
+	}
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
@@ -54,12 +74,6 @@ func (server *Server) createUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	userRsp := CreateUserReponse{
-		Username:          user.Username,
-		FullName:          user.FullName,
-		Email:             user.Email,
-		PasswordChangedAt: user.PasswordChangedAt,
-		CreatedAt:         user.CreatedAt,
-	}
+	userRsp := newUserResponse(user)
 	ctx.JSON(http.StatusOK, userRsp)
 }
