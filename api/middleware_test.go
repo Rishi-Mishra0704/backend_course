@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// something
+// something 9
 func addAuthorization(
 	t *testing.T,
 	request *http.Request,
