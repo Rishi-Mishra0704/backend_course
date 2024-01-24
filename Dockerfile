@@ -10,11 +10,12 @@ RUN apk --no-cache add curl \
 FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/main .
+COPY ./app.env .
+
 COPY --from=builder /app/migrate.linux-amd64 ./migrate
-COPY app.env .
-COPY db/migrations ./migrations
 COPY start.sh .
 COPY wait-for.sh .
+COPY db/migrations ./migrations
 
 EXPOSE 8080
 CMD [ "/app/main" ]
