@@ -9,12 +9,13 @@ RUN apk --no-cache add curl \
 # Run stage
 FROM alpine:3.19
 WORKDIR /app
+# Copy from the builder stage, including app.env
 COPY --from=builder /app/main .
-COPY app.env .
+COPY --from=builder /app/app.env .
 COPY --from=builder /app/migrate.linux-amd64 ./migrate
-COPY start.sh .
-COPY wait-for.sh .
-COPY db/migrations ./migrations
+COPY --from=builder /app/start.sh .
+COPY --from=builder /app/wait-for.sh .
+COPY --from=builder /app/db/migrations ./migrations
 
 EXPOSE 8080
 CMD [ "/app/main" ]
