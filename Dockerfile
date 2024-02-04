@@ -15,7 +15,9 @@ COPY --from=builder /app/migrate.linux-amd64 ./migrate
 COPY start.sh .
 COPY wait-for.sh .
 # Set execute permissions on scripts
-RUN chmod +x start.sh wait-for.sh
+RUN chmod +x /app/start.sh
+RUN chmod +x /app/wait-for.sh
+
 COPY db/migrations ./migrations
 
 EXPOSE 8080
