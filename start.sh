@@ -3,6 +3,8 @@
 set -e
 
 # Debug print
+cat /app/app.env
+
 echo "DB_SOURCE before sourcing: $DB_SOURCE"
 
 echo "run db migrations"
