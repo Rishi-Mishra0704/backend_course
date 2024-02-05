@@ -28,10 +28,20 @@ jobs:
       - name: Debug Repository URI
         run: echo $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
-      - name: Load secrets and save to app.env
+      - name: Load secrets from AWS Secrets Manager and save to app.env
         run: aws secretsmanager get-secret-value --secret-id simple_bank --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
 
-      - name: Debug app.env content
+      - name: Debug app.env content after AWS Secrets Manager
+        run: cat app.env
+
+      - name: Load secrets from GitHub Secrets to app.env
+        run: |
+          echo "DB_SOURCE=${{ secrets.DB_SOURCE }}" >> app.env
+          echo "SERVER_ADDRESS=${{ secrets.SERVER_ADDRESS }}" >> app.env
+          echo "TOKEN_SYMMETRIC_KEY=${{ secrets.TOKEN_SYMMETRIC_KEY }}" >> app.env
+          echo "ACCESS_TOKEN_DURATION=${{ secrets.ACCESS_TOKEN_DURATION }}" >> app.env
+
+      - name: Debug app.env content after GitHub Secrets
         run: cat app.env
 
       - name: Build, tag, and push image to Amazon ECR
@@ -45,6 +55,5 @@ jobs:
             --build-arg SERVER_ADDRESS="${SERVER_ADDRESS}" \
             --build-arg TOKEN_SYMMETRIC_KEY="${TOKEN_SYMMETRIC_KEY}" \
             --build-arg ACCESS_TOKEN_DURATION="${ACCESS_TOKEN_DURATION}" \
-            --build-arg AWS_DB="${AWS_DB}" \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
