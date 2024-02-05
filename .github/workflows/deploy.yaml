@@ -30,6 +30,7 @@ jobs:
 
       - name: Load secrets and save to app.env
         run: aws secretsmanager get-secret-value --secret-id simple_bank --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
+
       - name: Debug app.env content
         run: cat app.env
 
@@ -38,7 +39,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: simplebank
           IMAGE_TAG: ${{ github.sha }}
-         run: |
+        run: |
           docker build \
             --build-arg DB_SOURCE="${DB_SOURCE}" \
             --build-arg SERVER_ADDRESS="${SERVER_ADDRESS}" \
