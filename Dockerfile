@@ -17,6 +17,7 @@ COPY wait-for.sh .
 # Set execute permissions on scripts
 RUN chmod +x /app/start.sh
 RUN chmod +x /app/wait-for.sh
+RUN chmod 600 /app/app.env
 
 COPY db/migrations ./migrations
 
