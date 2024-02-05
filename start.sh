@@ -2,7 +2,7 @@
 
 set -e
 
-source app/app.env
+source /app/app.env
 
 
 /app/migrate -path /app/migrations -database "$DB_SOURCE" -verbose up
