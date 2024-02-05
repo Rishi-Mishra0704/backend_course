@@ -5,10 +5,13 @@ set -e
 # Debug print
 cat /app/app.env
 
+# Change directory to /app where the app.env file is located
+cd /app
+
 echo "DB_SOURCE before sourcing: $DB_SOURCE"
 
 echo "run db migrations"
-source /app/app.env || { echo "Failed to source app.env"; exit 1; }
+source ./app.env || { echo "Failed to source app.env"; exit 1; }
 
 # Debug print
 echo "DB_SOURCE after sourcing: $DB_SOURCE"
